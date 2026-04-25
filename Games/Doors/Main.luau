@@ -5132,7 +5132,7 @@ if not Functions.FirePrompt then
             end
         end
 
-        for i = 1, 10, 1 do
+        for Index = 1, 5, 1 do
             Camera.CFrame = CFrame.lookAt(Position.LookVector * 3, Position.Position)
             Prompt:InputHoldBegin()
             Prompt:InputHoldEnd()
