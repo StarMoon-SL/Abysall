@@ -55,6 +55,7 @@ return function(Window)
     Executor:AddLabel("Name: " .. Name, true)
     Executor:AddLabel("Version: " .. (Version and Version or "N/A"), true)
     Executor:AddDivider()
+    Executor:AddLabel("Test Result: ", true)
 
     for Index, Result in pairs(Abysall.Environment.Results) do
         Executor:AddLabel(Result, true)
