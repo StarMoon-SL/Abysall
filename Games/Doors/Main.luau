@@ -3767,16 +3767,6 @@ Functions.HandleCharacter = function(NewCharacter)
             CollisionPartClone.Massless = true
         end
 
-        if RemotesFolder:FindFirstChild("Crouch") and Toggles.SpeedBoostToggle.Value and Options.SpeedBoostSlider.Value > 6 and Floor ~= "Fools" and Floor ~= "OldHotel" or RemotesFolder:FindFirstChild("Crouch") and Toggles.FlyToggle.Value and Options.FlySpeed.Value > 21 and Floor ~= "Fools" and Floor ~= "OldHotel" then
-           local IsCrouching = Functions.IsCrouching()
-
-            if Toggles.CrouchSpoof.Value or Toggles.PositionSpoof.Value then
-                IsCrouching = true
-            end
-           
-            RemotesFolder.Crouch:FireServer(IsCrouching, true)
-        end
-
         if Services.Workspace:FindFirstChild("Eyes") or Services.Workspace:FindFirstChild("Lookman") then
             Globals.IsEyes = true
         else
@@ -3877,6 +3867,16 @@ Functions.HandleCharacter = function(NewCharacter)
             else
                 RemotesFolder.MotorReplication:FireServer(-650)
             end
+        end
+
+        if RemotesFolder:FindFirstChild("Crouch") and Toggles.SpeedBoostToggle.Value and Options.SpeedBoostSlider.Value > 6 and Floor ~= "Fools" and Floor ~= "OldHotel" or RemotesFolder:FindFirstChild("Crouch") and Toggles.FlyToggle.Value and Options.FlySpeed.Value > 21 and Floor ~= "Fools" and Floor ~= "OldHotel" then
+           local IsCrouching = Functions.IsCrouching()
+
+            if Toggles.CrouchSpoof.Value or Toggles.PositionSpoof.Value then
+                IsCrouching = true
+            end
+           
+            RemotesFolder.Crouch:FireServer(IsCrouching, true)
         end
 
         if Toggles.ThirdPersonToggle.Value then
