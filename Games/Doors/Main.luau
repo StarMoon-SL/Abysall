@@ -254,34 +254,9 @@ local GameData = Services.ReplicatedStorage:WaitForChild("GameData")
 local Floor = GameData:WaitForChild("Floor").Value
 local LatestRoom = GameData:WaitForChild("LatestRoom")
 
-local Loading = Library:CreateLoading({
-    Title = "Abysall Hub",
-    Icon = 0,
-    TotalSteps = 4
-})
- 
-Loading:SetMessage("Initialising...")
-Loading:SetDescription("Waiting for game to load...")
-Loading:SetCurrentStep(1)
-
-task.spawn(function()
-    task.wait(0.5)
-    Loading:ShowSidebarPage(true)
-    Loading.Sidebar:AddLabel("-- Developers --")
-    Loading.Sidebar:AddLabel("<font color='rgb(255, 230, 0)'>bocaj111004</font>")
-    Loading.Sidebar:AddLabel("<font color='rgb(255, 230, 0)'>feargeorge</font>")
-    Loading.Sidebar:AddLabel("<font color='rgb(255, 230, 0)'>thehuntersolo1</font>")
-    Loading.Sidebar:AddLabel("-- Community --")
-    Loading.Sidebar:AddLabel("<font color='rgb(0, 217, 255)'>https://discord.gg/q6pFJRSy9e</font>")
-end)
-
 while not LocalPlayer.Character or not CurrentRooms:FindFirstChildOfClass("Model") do
     task.wait()
 end
-task.wait(1)
- 
-Loading:SetCurrentStep(2)
-Loading:SetDescription("Loading interface...")
 task.wait(1)
 
 if not RemotesFolder then
@@ -642,6 +617,14 @@ Container.Parent = GetHiddenContainer()
 Container.DisplayOrder = 32767
 Container.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+if not Library.Scheme then
+    Library.Scheme = setmetatable({}, {
+        __index = function(self, Name)
+            return Library[Name]
+        end
+    })
+end
+
 function NotificationLibrary:Notify(TitleText, Desc, Delay)
 	task.spawn(function()
 		local Notification = Instance.new("Frame")
@@ -856,13 +839,11 @@ local Tabs = {
     Floors = Window:AddTab("Floors", "earth"),
 }
 
-Groupboxes.General_LeftTab = Tabs.General:AddLeftTabbox("Character / Self")
-
-Groupboxes.General_Character = Groupboxes.General_LeftTab:AddTab("Character")
+Groupboxes.General_Character = Tabs.General:AddLeftGroupbox("Character")
 Groupboxes.General_Character:AddSlider("SpeedBoostSlider", {
     Text = "Speed Boost",
     Min = 0,
-    Max = 60,
+    Max = 85,
     Default = 0,
     Rounding = 0,
     Compact = true,
@@ -871,19 +852,6 @@ Groupboxes.General_Character:AddToggle("SpeedBoostToggle", {
     Text = "Enable Speed Boost",
     Default = false,
     Tooltip = "Increases your walkspeed by the specified amount.",
-})
-Groupboxes.General_Character:AddSlider("JumpBoostSlider", {
-    Text = "Jump Boost",
-    Min = 0,
-    Max = 50,
-    Default = 0,
-    Rounding = 0,
-    Compact = true
-})
-Groupboxes.General_Character:AddToggle("JumpBoostToggle", {
-    Text = "Enable Jump Boost",
-    Default = false,
-    Tooltip = "Increases your jump power by the specified amount."
 })
 
 Groupboxes.General_Character:AddToggle("FlyToggle", {
@@ -902,7 +870,7 @@ Toggles.FlyToggle:AddKeyPicker("FlyKeybind", {
 Groupboxes.General_Character:AddSlider("FlySpeed", {
     Text = "Fly Speed",
     Min = 0,
-    Max = 75,
+    Max = 100,
     Default = 20,
     Rounding = 0,
     Compact = true
@@ -984,7 +952,7 @@ Toggles.EnableCharacterSlide:OnChanged(function(Value)
     end
 end)
 
-Groupboxes.General_Self = Groupboxes.General_LeftTab:AddTab("Self")
+Groupboxes.General_Self = Tabs.General:AddLeftGroupbox("Self")
 
 Groupboxes.General_Self:AddToggle("DoorReachToggle", {
     Text = "Door Reach",
@@ -1019,12 +987,6 @@ end)
 
 Groupboxes.General_Self:AddDivider()
 
-Groupboxes.General_Self:AddToggle("PromptReachToggle", {
-    Text = "Prompt Reach",
-    Default = false,
-    Tooltip = "Allows you to interact with prompt from further away."
-})
-
 Groupboxes.General_Self:AddSlider("PromptReachSlider", {
     Text = "Prompt Reach Multiplier",
     Min = 1,
@@ -1045,16 +1007,9 @@ Groupboxes.General_Self:AddToggle("PromptClip", {
     Default = false,
     Tooltip = "Allows you to interact with prompts through walls."
 })
-
-Toggles.PromptReachToggle:OnChanged(function(Value)
-    for Index, Prompt in pairs(Objects.Prompts) do
-        Prompt.MaxActivationDistance = Prompt:GetAttribute("MaxActivationDistance_Old") * (Value and Options.PromptReachSlider.Value or 1)
-    end
-end)
-
 Options.PromptReachSlider:OnChanged(function(Value)
     for Index, Prompt in pairs(Objects.Prompts) do
-        Prompt.MaxActivationDistance = Prompt:GetAttribute("MaxActivationDistance_Old") * (Toggles.PromptReachToggle.Value and Options.PromptReachSlider.Value or 1)
+        Prompt.MaxActivationDistance = Prompt:GetAttribute("MaxActivationDistance_Old") * Options.PromptReachSlider.Value
     end
 end)
 
@@ -3422,9 +3377,6 @@ Toggles.RemoveSkeletonDoor:OnChanged(function(Value)
     end
 end)
 
-Loading:SetCurrentStep(3)
-Loading:SetDescription("Loading object handlers...")
-
 local MainHook
 if Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}) then
     MainHook = Abysall.Environment.hookmetamethod(game, "__namecall", Abysall.Environment.newcclosure(function(self, ...)
@@ -3810,11 +3762,6 @@ Functions.HandleCharacter = function(NewCharacter)
         if Toggles.SpeedBoostToggle.Value then
             Humanoid.WalkSpeed = Functions.GetCurrentSpeed() + Options.SpeedBoostSlider.Value
         end
-        if Toggles.JumpBoostToggle.Value then
-            Humanoid.JumpHeight = 5 + Options.JumpBoostSlider.Value
-        else
-            Humanoid.JumpHeight = 5
-        end
 
         if Globals.Lagging or Options.SpeedBoostSlider.Value <= 6 and Options.FlySpeed.Value <= 21 then
             CollisionPartClone.Massless = true
@@ -3862,7 +3809,7 @@ Functions.HandleCharacter = function(NewCharacter)
 
         if Floor ~= "Fools" and Floor ~= "OldHotel" and not Camera:FindFirstChild("MinecartRig") then
             RootPart.CanCollide = false
-            if Character.LowerTorso:FindFirstChild("Root") then
+            if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
                 Character.LowerTorso.Root.C0 = Character.LowerTorso.Root.C0 * CFrame.new(0, Toggles.PositionSpoof.Value and 2.146 or 0, 0)
             end
         end
@@ -3886,7 +3833,9 @@ Functions.HandleCharacter = function(NewCharacter)
             RootPart.CanCollide = not (Toggles.NoclipToggle.Value and true or Toggles.VelocityManipulationToggle.Value or false)
         else
             Collision.CanCollide = false
-            Collision.CollisionCrouch.CanCollide = false
+            if Collision:FindFirstChild("CollisionCrouch") then
+                Collision.CollisionCrouch.CanCollide = false
+            end
             if CollisionClone:FindFirstChild("CollisionCrouch") then
                 CollisionClone.CanCollide = not (Toggles.NoclipToggle.Value and true or Toggles.VelocityManipulationToggle.Value or Functions.IsCrouching() and true or false)
                 CollisionClone.CollisionCrouch.CanCollide = not (Toggles.NoclipToggle.Value and true or Toggles.VelocityManipulationToggle.Value or Functions.IsCrouching() == false and true or false)
@@ -3949,6 +3898,26 @@ Functions.HandleCharacter = function(NewCharacter)
         task.wait()
         if Toggles.RemoveClosetDelay.Value and Humanoid.MoveDirection ~= Vector3.zero and (CollisionPart.Anchored or RootPart.Anchored) and Character:GetAttribute("AnimatingClient") ~= true and Character:GetAttribute("Hiding") == true then
             RemotesFolder.CamLock:FireServer()
+        end
+
+        local Closest = {
+            Distance = math.huge,
+            Object = nil
+        }
+        for Index, Player in pairs(Services.Players:GetPlayers()) do
+            if Player.Character and Player ~= LocalPlayer then
+                local Root = Player.Character:FindFirstChild("HumanoidRootPart")
+                if Root then
+                    local Distance = (Camera.CFrame.Position - Root.Position).Magnitude
+                    if Distance < Closest.Distance then
+                        Closest.Distance = Distance
+                        Closest.Object = Player
+                    end
+                end
+            end
+        end
+        if Closest.Object and LocalPlayer:GetAttribute("Alive") ~= true then
+            LocalPlayer:SetAttribute("CurrentRoom", Closest.Object:GetAttribute("CurrentRoom"))
         end
     end)
 
@@ -5027,9 +4996,7 @@ Functions.HandleObject = function(Object)
                 if Toggles.PromptClip.Value then
                     FakePrompt.RequiresLineOfSight = false
                 end
-                if Toggles.PromptReachToggle.Value then
-                    FakePrompt.MaxActivationDistance = FakePrompt:GetAttribute("MaxActivationDistance_Old") * Options.PromptReachSlider.Value
-                end
+                FakePrompt.MaxActivationDistance = FakePrompt:GetAttribute("MaxActivationDistance_Old") * Options.PromptReachSlider.Value
 
                 FakePrompts[FakePrompt] = Object
                 pcall(function()
@@ -5065,9 +5032,8 @@ Functions.HandleObject = function(Object)
         if Toggles.PromptClip.Value then
             Object.RequiresLineOfSight = false
         end
-        if Toggles.PromptReachToggle.Value then
-            Object.MaxActivationDistance = Object:GetAttribute("MaxActivationDistance_Old") * Options.PromptReachSlider.Value
-        end
+        Object.MaxActivationDistance = Object:GetAttribute("MaxActivationDistance_Old") * Options.PromptReachSlider.Value
+        
     elseif Object.Name == "Padlock" then
         Connections.PadlockConnection = Services.RunService.Heartbeat:Connect(function()
             if Toggles.AutoUnlockPadlockToggle.Value and Object.PrimaryPart then
@@ -5708,9 +5674,4 @@ Library:OnUnload(function()
 end)
 
 task.wait(0.5)
-Loading:SetCurrentStep(4)
-Loading:SetDescription("Ready!")
-
-task.wait(1)
-Loading:Continue()
 Functions.Notify({Title = "Successfully loaded in " .. math.floor((tick() - LoadStart) * 1000) / 1000 .. " seconds."})
